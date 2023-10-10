@@ -1,4 +1,10 @@
 - name: patch
   hosts: all
+  become: true
+  
   tasks:
-    - name: Hello Message
+    - name: upgrade packages (yum)
+      yum:
+        name: '*'
+        state: latest
+      
