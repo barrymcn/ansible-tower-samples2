@@ -1,0 +1,4 @@
+- name: patch
+  hosts: all
+  tasks:
+    - name: Hello Message
