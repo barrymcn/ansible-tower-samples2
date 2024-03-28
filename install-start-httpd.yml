@@ -9,7 +9,7 @@
 
     - name: Create the index.html file
       ansible.builtin.template:
-        src: files/index.html
+        src: /home/lab-user/files/index.html
         dest: /var/www/html/
 
     - name: Start the httpd service if needed
