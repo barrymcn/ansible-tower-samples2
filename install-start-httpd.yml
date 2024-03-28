@@ -1,5 +1,6 @@
 - name: Install and start and Apache server
   hosts: "{{ HOSTS }}"
+  become: true
 
   tasks:
     - name: Ensure the httpd package is insalled
@@ -9,10 +10,10 @@
 
     - name: Create the index.html file
       ansible.builtin.template:
+        remote_src: yes
         src: /home/lab-user/files/index.html
         dest: /var/www/html/
-        remote_src: yes
-
+        
     - name: Start the httpd service if needed
       ansible.builtin.service:
         name: httpd
