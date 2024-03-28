@@ -11,6 +11,7 @@
       ansible.builtin.template:
         src: /home/lab-user/files/index.html
         dest: /var/www/html/
+        remote_src: yes
 
     - name: Start the httpd service if needed
       ansible.builtin.service:
