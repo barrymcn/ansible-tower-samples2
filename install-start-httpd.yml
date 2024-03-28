@@ -1,5 +1,6 @@
 - name: Install and start and Apache server
   hosts: "{{ HOSTS }}"
+
   tasks:
     - name: Ensure the httpd package is insalled
       ansible.builtin.yum:
@@ -8,8 +9,8 @@
 
     - name: Create the index.html file
       ansible.builtin.template:
-      src: files/index.html
-      dest: /var/www/html/
+        src: files/index.html
+        dest: /var/www/html/
 
     - name: Start the httpd service if needed
       ansible.builtin.service:
