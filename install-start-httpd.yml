@@ -1,0 +1,8 @@
+- name: Install and start and Apache server
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: Ensure the httpd package is insalled
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
