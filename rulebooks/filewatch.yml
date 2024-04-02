@@ -1,6 +1,5 @@
 - name: Ruleset for file watching
   hosts: all
-  gather_facts: true
 
   sources:
     - ansible.eda.file_watch:
