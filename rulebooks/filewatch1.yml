@@ -1,10 +1,11 @@
 - name: Rulebook to do something
   hosts: all
   sources:
-      - ansible.eda.file_watch:
-          path: "files/"
+    - ansible.eda.file_watch:
+          path: "./"
           recursive: false
           ignore_regexes: [ '.*\.o' ]
+          
   rules:
       - name: trigger on range
         condition: event.type == 'FileCreatedEvent'
