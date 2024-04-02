@@ -1,0 +1,13 @@
+- name: Local Test Runner Rules
+  hosts: all
+  sources:
+    - name: file_watch
+      ansible.eda.file_watch:
+        path: "/home/lab-user/folder1"
+        recursive: true
+
+  rules:
+    - name: run tests 1
+      condition: event.type == "DirModifiedEvent"
+      action:
+        debug:
