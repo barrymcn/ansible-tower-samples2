@@ -1,5 +1,5 @@
 - name: Ruleset for file watching
-  hosts: all
+  hosts: rhel1
 
   sources:
     - ansible.eda.file_watch:
