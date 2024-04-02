@@ -5,7 +5,7 @@
 
   sources:
     - ansible.eda.file_watch:
-        path: /home/lab-user/folder-to-watch
+        path: /home/lab-user/folder1
         recursive: true
 
   ## Define the conditions we are looking for
