@@ -1,10 +1,10 @@
 - name: Ruleset for file watching
   hosts: all
   gather_facts: true
-  
+
   sources:
     - ansible.eda.file_watch:
-          path: "./app/"
+          path: "/home/lab-user/app/"
           recursive: false
           ignore_regexes: [ '.*\.o' ]
 
