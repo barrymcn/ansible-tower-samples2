@@ -3,7 +3,8 @@
   sources:
     - ansible.eda.file_watch:
         path: "./home/labuser/app"
-
+        recursive: false
+        
   rules: 
     - name: trigger on deleted
       condition: event.change == "deleted"
