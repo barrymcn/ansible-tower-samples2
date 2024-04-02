@@ -3,7 +3,7 @@
   sources:
     - name: file_watch
       ansible.eda.file_watch:
-        path: "/home/lab-user/folder1"
+        path: "/home/"
         recursive: true
 
   rules:
