@@ -2,7 +2,7 @@
   hosts: all
   sources:
     - ansible.eda.file_watch:
-        path: "/home/labuser/app/"
+        path: "./app/"
         recursive: false
 
   rules: 
