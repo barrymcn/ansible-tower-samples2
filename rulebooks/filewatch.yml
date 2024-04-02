@@ -8,7 +8,7 @@
 
   rules: 
     - name: trigger on deleted
-      condition: true
+      condition: event.file_watch == true
       action:
         run_job_template:
           name: pwd
