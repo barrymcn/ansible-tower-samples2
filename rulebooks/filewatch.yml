@@ -8,10 +8,13 @@
           recursive: true
           ignore_regexes: [ '.*\.o' ]
 
-  rules: 
-    - name: trigger on deleted
-      condition: event.change == "deleted"
+  rules:
+    - name: run tests 1
+      condition: event.type == "DirModifiedEvent"
+
+  ## Define the action we should take should the condition be met
+
       action:
-        run_job_template:
-          name: pwd
-          organization: Default
+          run_job_template:
+            name: pwd
+            organization: Default
