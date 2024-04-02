@@ -1,11 +1,11 @@
 - name: Listen for events on a webhook
-  hosts: all
+  hosts: rhel1
 
   ## Define our source for events
 
   sources:
     - ansible.eda.file_watch:
-        path: /home/core/folder1
+        path: /.
         recursive: true
 
   ## Define the conditions we are looking for
