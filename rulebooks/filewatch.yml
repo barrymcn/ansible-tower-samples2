@@ -11,5 +11,5 @@
       condition: event.change == "deleted"
       action:
         run_job_template:
-          name: create-file
+          name: pwd
           organization: Default
