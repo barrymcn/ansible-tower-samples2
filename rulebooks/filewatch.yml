@@ -4,8 +4,8 @@
 
   sources:
     - ansible.eda.file_watch:
-          path: "/home/lab-user/app/"
-          recursive: false
+          path: "./"
+          recursive: true
           ignore_regexes: [ '.*\.o' ]
 
   rules: 
