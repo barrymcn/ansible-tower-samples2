@@ -2,13 +2,13 @@
   hosts: all
   sources:
     - ansible.eda.file_watch:
-          path: "./app/"
+          path: "./"
           recursive: false
           ignore_regexes: [ '.*\.o' ]
 
   rules: 
     - name: trigger on deleted
-      condition: event.change == "deleted"
+      condition: true
       action:
         run_job_template:
           name: pwd
