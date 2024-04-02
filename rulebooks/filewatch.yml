@@ -2,8 +2,9 @@
   hosts: all
   sources:
     - ansible.eda.file_watch:
-        path: "./app/"
-        recursive: false
+          path: "files/"
+          recursive: false
+          ignore_regexes: [ '.*\.o' ]
 
   rules: 
     - name: trigger on deleted
