@@ -2,7 +2,7 @@
   hosts: all
   sources:
     - ansible.eda.file_watch:
-          path: "./app"
+          path: "./app/"
           recursive: false
           ignore_regexes: [ '.*\.o' ]
 
