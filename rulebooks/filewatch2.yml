@@ -1,5 +1,6 @@
 - name: Listen for events on a webhook
   hosts: rhel1
+  gather_facts: true
 
   ## Define our source for events
 
