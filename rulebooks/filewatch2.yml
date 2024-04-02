@@ -5,7 +5,7 @@
 
   sources:
     - ansible.eda.file_watch:
-        path: /.
+        path: ./
         recursive: true
 
   ## Define the conditions we are looking for
