@@ -10,10 +10,14 @@
   rules:
     - name: run tests 1
       condition: event.type == "DirModifiedEvent"
-
-  ## Define the action we should take should the condition be met
-
       action:
-          run_job_template:
+        run_job_template:
+            name: pwd
+            organization: Default
+
+    - name: run tests 2
+      condition: event.type == "FileModifiedEvent"
+      action:
+        run_job_template:
             name: pwd
             organization: Default
