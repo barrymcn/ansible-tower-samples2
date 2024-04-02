@@ -1,0 +1,9 @@
+- name: patch
+  hosts: rhel1
+  become: true
+  
+  tasks:
+    - name: Create the iapplication file
+      ansible.builtin.template:
+        src: files/index.html
+        dest: /home/lab-user/app
