@@ -1,7 +1,7 @@
 - name: Ruleset for file watching
   hosts: all
   sources:
-    - file_watch:
+    - sabre1041.eda.file_watch:
         path: "./home/labuser/app"
 
   rules: 
