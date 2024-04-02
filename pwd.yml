@@ -1,0 +1,8 @@
+- name: patch
+  hosts: rhel1
+  become: true
+  
+  tasks:
+    - name: pwd
+      ansible.builtin.debug:
+        msg: "current directory is {{ ansible_env.PWD }}"
