@@ -1,8 +1,7 @@
 - name: Ruleset for file watching
   hosts: all
   sources:
-    - name: check files
-      ansible.eda.file_watch:
+    - ansible.eda.file_watch:
         path: "./home/labuser/app"
 
   rules: 
