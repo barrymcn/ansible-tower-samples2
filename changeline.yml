@@ -1,0 +1,7 @@
+- name: Enable Verbose Mode
+  hosts: "{{ HOSTS }}"
+
+  tasks:
+      - name: Enable verbose mode in the settings file
+        ini_file: dest=/etc/setting.conf section=DEFAULT option=verbose value=True backup=yes
+        tags: configuration
