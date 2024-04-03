@@ -3,5 +3,6 @@
 
   tasks:
       - name: Enable verbose mode in the settings file
-        ini_file: dest=/etc/setting.conf section=DEFAULT option=verbose value=True backup=yes
-        tags: configuration
+        ansible.builtin.ini_file:
+          ini_file: dest=/etc/setting.conf section=DEFAULT option=verbose value=True backup=yes
+          tags: configuration
