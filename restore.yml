@@ -1,0 +1,8 @@
+- name: store config file
+  hosts: rhel1
+  tasks:
+
+    - name: Create the index.html file
+      ansible.builtin.template:
+        src: files/index.html
+        dest: /home/lab-user
