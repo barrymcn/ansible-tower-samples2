@@ -1,0 +1,14 @@
+---
+- name: modify script
+  hosts: rhel
+  become: true
+
+  tasks:
+  #modify a single line of a config file
+  - name: Modify a single line of a config file
+    ansible.builtin.lineinfile:
+      path: /etc/settings.conf
+      regexp: ^debug=
+      line: debug=true
+    register: result
+    failed_when: result.changed == false
