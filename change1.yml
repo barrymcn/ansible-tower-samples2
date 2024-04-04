@@ -1,6 +1,6 @@
 ---
 - name: modify script
-  hosts: rhel
+  hosts: "{{ HOSTS }}"
   become: true
 
   tasks:
