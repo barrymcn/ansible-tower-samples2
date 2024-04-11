@@ -9,6 +9,6 @@
     ansible.builtin.lineinfile:
       path: /etc/settings.conf
       regexp: ^debug=
-      line: debug=true
+      line: debug=false
     register: result
     failed_when: result.changed == false
