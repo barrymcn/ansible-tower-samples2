@@ -1,0 +1,25 @@
+---
+- name: Patch Red Hat servers
+  hosts: redhat_servers
+  become: yes
+  tasks:
+    - name: Update all packages to the latest version
+      yum:
+        name: '*'
+        state: latest
+      register: update_result
+
+    - name: Check if a reboot is required
+      command: needs-restarting
+      register: reboot_required
+      failed_when: false
+      changed_when: false
+
+    - name: Reboot the server if needed
+      reboot:
+        msg: "Rebooting to apply updates"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+      when: reboot_required.rc == 1
