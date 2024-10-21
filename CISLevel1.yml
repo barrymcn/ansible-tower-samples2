@@ -51,6 +51,7 @@
         - nfs
         - snmpd
         - cups
+      ignore_errors: yes
 
     - name: Ensure chronyd or ntpd is installed and enabled
       yum:
