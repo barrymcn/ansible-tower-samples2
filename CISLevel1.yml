@@ -1,0 +1,218 @@
+---
+- name: Apply CIS Level 1 Compliance on RHEL 8
+  hosts: all
+  become: true
+
+  tasks:
+    ### 1. Initial Setup & Filesystem
+
+#    - name: Ensure /tmp is on a separate partition
+#      shell: mount | grep ' /tmp '
+#      register: tmp_mount_check
+#      failed_when: tmp_mount_check.rc != 0
+#      ignore_errors: yes
+
+#    - name: Fail if /tmp is not mounted as a separate partition
+#      fail:
+#        msg: "/tmp is not mounted as a separate partition. Please configure a separate partition for /tmp."
+#      when: tmp_mount_check.rc != 0
+
+    - name: Ensure nodev option is set on /tmp
+      mount:
+        path: /tmp
+        src: "{{ item.src }}"
+        fstype: "{{ item.fstype }}"
+        opts: "defaults,nodev"
+        state: mounted
+      with_items:
+        - { src: "/dev/sdaX", fstype: "ext4" }
+
+    - name: Ensure nosuid option is set on /tmp
+      mount:
+        path: /tmp
+        src: "{{ item.src }}"
+        fstype: "{{ item.fstype }}"
+        opts: "defaults,nosuid"
+        state: mounted
+      with_items:
+        - { src: "/dev/sdaX", fstype: "ext4" }
+
+    ### 2. Service Management
+
+    - name: Disable unnecessary services
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items:
+        - avahi-daemon
+        - telnet
+        - rsh
+        - nfs
+        - snmpd
+        - cups
+
+    - name: Ensure chronyd or ntpd is installed and enabled
+      yum:
+        name: chrony
+        state: present
+    - name: Start and enable chronyd
+      service:
+        name: chronyd
+        state: started
+        enabled: true
+
+    ### 3. User Accounts and Authentication
+
+    - name: Ensure password expiration is 90 days or less
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MAX_DAYS'
+        line: 'PASS_MAX_DAYS 90'
+        state: present
+
+    - name: Ensure password minimum days is 7
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MIN_DAYS'
+        line: 'PASS_MIN_DAYS 7'
+        state: present
+
+    - name: Ensure password warning days is 7
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_WARN_AGE'
+        line: 'PASS_WARN_AGE 7'
+        state: present
+
+    - name: Lock inactive accounts after 30 days
+      user:
+        name: "{{ item }}"
+        inactive: 30
+      with_items:
+        - root
+
+    - name: Ensure root login is restricted to the system console
+      lineinfile:
+        path: /etc/securetty
+        line: 'tty1'
+
+    ### 4. File Permissions
+
+    - name: Ensure /etc/passwd ownership and permissions
+      file:
+        path: /etc/passwd
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure /etc/shadow ownership and permissions
+      file:
+        path: /etc/shadow
+        owner: root
+        group: root
+        mode: '0000'
+
+    - name: Ensure /etc/group ownership and permissions
+      file:
+        path: /etc/group
+        owner: root
+        group: root
+        mode: '0644'
+
+    ### 5. Logging and Auditing
+
+    - name: Ensure auditd is installed
+      yum:
+        name: audit
+        state: present
+
+    - name: Ensure auditd service is enabled and running
+      service:
+        name: auditd
+        state: started
+        enabled: true
+
+    - name: Ensure rsyslog is installed
+      yum:
+        name: rsyslog
+        state: present
+
+    - name: Start and enable rsyslog
+      service:
+        name: rsyslog
+        state: started
+        enabled: true
+
+    ### 6. SSH Configuration
+
+    - name: Ensure SSH Protocol is set to 2
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Protocol'
+        line: 'Protocol 2'
+        state: present
+
+    - name: Ensure SSH root login is disabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        state: present
+
+    - name: Set SSH MaxAuthTries to 4
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?MaxAuthTries'
+        line: 'MaxAuthTries 4'
+        state: present
+
+    - name: Set SSH idle timeout to 300 seconds
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?ClientAliveInterval'
+        line: 'ClientAliveInterval 300'
+        state: present
+
+    ### 7. Network Configuration
+
+    - name: Disable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 0
+        state: present
+
+    - name: Disable packet redirects
+      sysctl:
+        name: net.ipv4.conf.all.accept_redirects
+        value: 0
+        state: present
+
+    - name: Disable ICMP redirects
+      sysctl:
+        name: net.ipv4.conf.all.send_redirects
+        value: 0
+        state: present
+
+    - name: Enable TCP SYN cookies
+      sysctl:
+        name: net.ipv4.tcp_syncookies
+        value: 1
+        state: present
+
+    ### 8. System Maintenance
+
+    - name: Ensure system is up to date
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Ensure AIDE is installed
+      yum:
+        name: aide
+        state: present
+
+    - name: Initialize AIDE database
+      command: aide --init
+      args:
+        creates: /var/lib/aide/aide.db.gz
