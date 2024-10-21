@@ -17,25 +17,25 @@
 #        msg: "/tmp is not mounted as a separate partition. Please configure a separate partition for /tmp."
 #      when: tmp_mount_check.rc != 0
 
-    - name: Ensure nodev option is set on /tmp
-      mount:
-        path: /tmp
-        src: "{{ item.src }}"
-        fstype: "{{ item.fstype }}"
-        opts: "defaults,nodev"
-        state: mounted
-      with_items:
-        - { src: "/dev/sdaX", fstype: "ext4" }
+#    - name: Ensure nodev option is set on /tmp
+#      mount:
+#        path: /tmp
+#        src: "{{ item.src }}"
+#        fstype: "{{ item.fstype }}"
+#        opts: "defaults,nodev"
+#        state: mounted
+#      with_items:
+#        - { src: "/dev/sdaX", fstype: "ext4" }
 
-    - name: Ensure nosuid option is set on /tmp
-      mount:
-        path: /tmp
-        src: "{{ item.src }}"
-        fstype: "{{ item.fstype }}"
-        opts: "defaults,nosuid"
-        state: mounted
-      with_items:
-        - { src: "/dev/sdaX", fstype: "ext4" }
+#    - name: Ensure nosuid option is set on /tmp
+#      mount:
+#        path: /tmp
+#        src: "{{ item.src }}"
+#        fstype: "{{ item.fstype }}"
+#        opts: "defaults,nosuid"
+#        state: mounted
+#      with_items:
+#        - { src: "/dev/sdaX", fstype: "ext4" }
 
     ### 2. Service Management
 
