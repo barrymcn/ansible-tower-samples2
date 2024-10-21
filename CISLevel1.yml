@@ -1,6 +1,6 @@
 ---
 - name: Apply CIS Level 1 Compliance on RHEL 8
-  hosts: all
+  hosts: "{{ HOSTS }}"
   become: true
 
   tasks:
