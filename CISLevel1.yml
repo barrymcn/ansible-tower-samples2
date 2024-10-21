@@ -86,12 +86,20 @@
         line: 'PASS_WARN_AGE 7'
         state: present
 
-    - name: Lock inactive accounts after 30 days
-      user:
-        name: "{{ item }}"
-        inactive: 30
-      with_items:
-        - root
+#    - name: Lock inactive accounts after 30 days
+#      user:
+#        name: "{{ item }}"
+#        inactive: 30
+#      with_items:
+#        - root
+
+    - name: Ensure inactive accounts are locked after 30 days
+      lineinfile:
+        path: /etc/default/useradd
+        regexp: '^INACTIVE='
+        line: 'INACTIVE=30'
+        state: present
+
 
     - name: Ensure root login is restricted to the system console
       lineinfile:
