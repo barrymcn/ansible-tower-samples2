@@ -54,7 +54,7 @@
         state: present
 
     - name: Ensure /tmp directory is configured for separate partition
-      command: mount | grep /tmp
+      shell: mount | grep ' /tmp '
       register: tmp_mount_check
       failed_when: tmp_mount_check.rc != 0
       ignore_errors: yes
