@@ -12,10 +12,10 @@
 #      failed_when: tmp_mount_check.rc != 0
 #      ignore_errors: yes
 
-#    - name: Fail if /tmp is not mounted as a separate partition
-#      fail:
-#        msg: "/tmp is not mounted as a separate partition. Please configure a separate partition for /tmp."
-#      when: tmp_mount_check.rc != 0
+    - name: Fail if /tmp is not mounted as a separate partition
+      fail:
+        msg: "/tmp is not mounted as a separate partition. Please configure a separate partition for /tmp."
+      when: tmp_mount_check.rc != 0
 
 #    - name: Ensure nodev option is set on /tmp
 #      mount:
