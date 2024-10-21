@@ -53,11 +53,16 @@
         line: 'MaxAuthTries 4'
         state: present
 
-    - name: Ensure /tmp directory is configured for separate partition
+    - name: Check if /tmp is mounted as a separate partition
       shell: mount | grep ' /tmp '
       register: tmp_mount_check
-      failed_when: tmp_mount_check.rc != 0
       ignore_errors: yes
+
+    - name: Fail if /tmp is not mounted as a separate partition
+      fail:
+        msg: "/tmp is not mounted as a separate partition. Please configure a separate partition for /tmp."
+      when: tmp_mount_check.rc != 0
+
 
     - name: Ensure file permissions are correct for /etc/passwd
       file:
