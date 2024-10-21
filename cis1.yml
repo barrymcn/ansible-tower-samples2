@@ -1,6 +1,6 @@
 ---
 - name: Ensure Linux server is CIS compliant
-  hosts: Test1
+  hosts: "{{ HOSTS }}"
   become: true
   tasks:
     - name: Ensure password expiry is 90 days or less
