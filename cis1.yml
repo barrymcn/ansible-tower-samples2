@@ -1,0 +1,94 @@
+---
+- name: Ensure Linux server is CIS compliant
+  hosts: Test1
+  become: true
+  tasks:
+    - name: Ensure password expiry is 90 days or less
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MAX_DAYS'
+        line: 'PASS_MAX_DAYS 90'
+        state: present
+
+    - name: Ensure minimum days between password changes is 7 or more
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MIN_DAYS'
+        line: 'PASS_MIN_DAYS 7'
+        state: present
+
+    - name: Ensure password expiration warning days is 7 or more
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_WARN_AGE'
+        line: 'PASS_WARN_AGE 7'
+        state: present
+
+    - name: Ensure root login is restricted to system console
+      lineinfile:
+        path: /etc/securetty
+        state: present
+        create: yes
+        line: tty1
+        insertafter: EOF
+
+    - name: Ensure SSH Protocol is set to 2
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Protocol'
+        line: 'Protocol 2'
+        state: present
+
+    - name: Ensure SSH root login is disabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        state: present
+
+    - name: Ensure SSH MaxAuthTries is set to 4 or less
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?MaxAuthTries'
+        line: 'MaxAuthTries 4'
+        state: present
+
+    - name: Ensure /tmp directory is configured for separate partition
+      command: mount | grep /tmp
+      register: tmp_mount_check
+      failed_when: tmp_mount_check.rc != 0
+      ignore_errors: yes
+
+    - name: Ensure file permissions are correct for /etc/passwd
+      file:
+        path: /etc/passwd
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure file permissions are correct for /etc/shadow
+      file:
+        path: /etc/shadow
+        owner: root
+        group: root
+        mode: '0000'
+
+    - name: Ensure file permissions are correct for /etc/group
+      file:
+        path: /etc/group
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure default group for root is GID 0
+      user:
+        name: root
+        group: 0
+
+    - name: Ensure at/cron is restricted to authorized users
+      copy:
+        content: ''
+        dest: /etc/cron.allow
+        owner: root
+        group: root
+        mode: '0644'
