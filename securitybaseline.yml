@@ -1,6 +1,6 @@
 ---
 - name: Enforce security baseline
-  hosts: all
+  hosts: "{{ HOSTS }}"
   become: true
   tasks:
     - name: Ensure chronyd is installed and enabled
