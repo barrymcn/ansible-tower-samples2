@@ -16,3 +16,8 @@
       ansible.builtin.debug:
         msg: "Drift detected: SSH PermitRootLogin is not set to 'no'"
       when: ssh_config_check.changed
+      
+    - name: Fail if drift is detected
+  ansible.builtin.fail:
+    msg: "Drift detected! SSH config is not compliant."
+  when: ssh_config_check.changed
