@@ -1,0 +1,147 @@
+---
+- name: Prepare RHEL host for Oracle Database (OS prereqs) - builtin only
+  hosts: oracle
+  become: true
+  gather_facts: true
+
+  vars:
+    oracle_user: oracle
+    oracle_groups:
+      - oinstall
+      - dba
+
+    # Common baseline packages (adjust to your Oracle version + Oracle doc requirements)
+    oracle_packages:
+      - binutils
+      - gcc
+      - gcc-c++
+      - glibc
+      - glibc-devel
+      - ksh
+      - libaio
+      - libaio-devel
+      - libgcc
+      - libstdc++
+      - libstdc++-devel
+      - make
+      - net-tools
+      - nfs-utils
+      - smartmontools
+      - sysstat
+      - unzip
+      - xorg-x11-xauth
+      - chrony
+      - firewalld
+
+    oracle_base: /u01/app/oracle
+    oracle_inventory: /u01/app/oraInventory
+
+    # Kernel/sysctl values MUST be aligned to Oracle’s install guide for the DB version you’re deploying.
+    # Oracle publishes “minimum parameter settings” and how to change them.  :contentReference[oaicite:2]{index=2}
+    oracle_sysctl:
+      fs.aio-max-nr: "1048576"
+      fs.file-max: "6815744"
+      kernel.sem: "250 32000 100 128"
+      net.ipv4.ip_local_port_range: "9000 65500"
+      net.core.rmem_default: "262144"
+      net.core.rmem_max: "4194304"
+      net.core.wmem_default: "262144"
+      net.core.wmem_max: "1048576"
+
+    # Oracle listener default is 1521/tcp (only open if required by your design)
+    open_listener_port: true
+    listener_port: 1521
+
+  tasks:
+    - name: Install packages
+      ansible.builtin.dnf:
+        name: "{{ oracle_packages }}"
+        state: present
+
+    - name: Ensure chronyd is enabled and running
+      ansible.builtin.service:
+        name: chronyd
+        enabled: true
+        state: started
+
+    - name: Ensure firewalld is enabled and running
+      ansible.builtin.service:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: Create groups
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ oracle_groups }}"
+
+    - name: Create oracle user
+      ansible.builtin.user:
+        name: "{{ oracle_user }}"
+        groups: "{{ oracle_groups }}"
+        append: true
+        shell: /bin/bash
+        create_home: true
+        state: present
+
+    - name: Create Oracle directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_groups[0] }}"
+        mode: "0775"
+      loop:
+        - "{{ oracle_base }}"
+        - "{{ oracle_inventory }}"
+
+    - name: Configure limits for oracle user
+      ansible.builtin.copy:
+        dest: /etc/security/limits.d/99-oracle.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Managed by Ansible - align with Oracle install guide
+          {{ oracle_user }} soft nofile 1024
+          {{ oracle_user }} hard nofile 65536
+          {{ oracle_user }} soft nproc  16384
+          {{ oracle_user }} hard nproc  16384
+          {{ oracle_user }} soft stack  10240
+          {{ oracle_user }} hard stack  32768
+          # If using HugePages, memlock is important (see Oracle + RHEL huge pages guidance)
+          {{ oracle_user }} soft memlock unlimited
+          {{ oracle_user }} hard memlock unlimited
+
+    - name: Set sysctl values (persistent)
+      ansible.builtin.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: true
+      loop: "{{ oracle_sysctl | dict2items }}"
+
+    # HugePages is commonly recommended for Oracle DB (tune per your DB SGA sizing).
+    # Oracle guidance: :contentReference[oaicite:3]{index=3}   RHEL huge pages overview: :contentReference[oaicite:4]{index=4}
+    # Uncomment + set a number if you want to enforce it:
+    # - name: Configure HugePages (example)
+    #   ansible.builtin.sysctl:
+    #     name: vm.nr_hugepages
+    #     value: "1024"
+    #     state: present
+    #     reload: true
+
+    - name: Open Oracle listener port in firewall (optional)
+      ansible.builtin.command: "firewall-cmd --permanent --add-port={{ listener_port }}/tcp"
+      when: open_listener_port | bool
+      register: fw_listener
+      changed_when: fw_listener.rc == 0
+      failed_when: fw_listener.rc != 0
+
+    - name: Reload firewalld (only if listener port opened)
+      ansible.builtin.command: firewall-cmd --reload
+      when: open_listener_port | bool
+      register: fw_reload
+      changed_when: false
+      failed_when: fw_reload.rc != 0
