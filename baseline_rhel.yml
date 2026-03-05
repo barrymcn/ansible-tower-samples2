@@ -1,0 +1,115 @@
+---
+- name: RHEL baseline configuration (builtin-only)
+  hosts: rhel
+  become: true
+
+  vars:
+    baseline_packages:
+      - vim-enhanced
+      - curl
+      - chrony
+      - firewalld
+
+    ntp_pools:
+      - 2.rhel.pool.ntp.org
+      - 1.rhel.pool.ntp.org
+
+    sshd_dropin: /etc/ssh/sshd_config.d/99-ansible.conf
+
+  pre_tasks:
+    - name: Install baseline packages
+      ansible.builtin.dnf:
+        name: "{{ baseline_packages }}"
+        state: present
+
+    - name: Ensure firewalld is enabled and running
+      ansible.builtin.service:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: Ensure chronyd is enabled and running
+      ansible.builtin.service:
+        name: chronyd
+        enabled: true
+        state: started
+
+    - name: Set legal banner
+      ansible.builtin.copy:
+        dest: /etc/issue.net
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Authorized access only. Activity may be monitored.
+
+  tasks:
+    # ---- Chrony managed block (simple + clear for demos) ----
+    - name: Configure chrony NTP servers (managed block)
+      ansible.builtin.blockinfile:
+        path: /etc/chrony.conf
+        marker: "# {mark} ANSIBLE MANAGED NTP"
+        block: |
+          {% for p in ntp_pools %}
+          pool {{ p }} iburst
+          {% endfor %}
+          makestep 1.0 3
+      notify: Restart chronyd
+
+    # ---- SSH config via drop-in file ----
+    - name: Ensure sshd_config includes drop-in directory
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^Include\s+/etc/ssh/sshd_config\.d/\*\.conf'
+        line: 'Include /etc/ssh/sshd_config.d/*.conf'
+        insertafter: '^#?Port\s+22'
+      notify: Restart sshd
+
+    - name: Ensure sshd drop-in directory exists
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Apply sshd hardening (drop-in)
+      ansible.builtin.copy:
+        dest: "{{ sshd_dropin }}"
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          # Managed by Ansible
+          PermitRootLogin no
+          PasswordAuthentication no
+          X11Forwarding no
+          AllowTcpForwarding no
+          MaxAuthTries 4
+          ClientAliveInterval 300
+          LoginGraceTime 60
+      notify: Restart sshd
+
+    # ---- Firewall (firewall-cmd via builtin command) ----
+    - name: Ensure SSH service is allowed (permanent)
+      ansible.builtin.command: firewall-cmd --permanent --add-service=ssh
+      register: fw_ssh_perm
+      changed_when: "'success' in (fw_ssh_perm.stdout | lower) or fw_ssh_perm.rc == 0"
+      failed_when: fw_ssh_perm.rc != 0
+
+    - name: Reload firewalld to apply permanent changes
+      ansible.builtin.command: firewall-cmd --reload
+      register: fw_reload
+      changed_when: false
+      failed_when: fw_reload.rc != 0
+
+  handlers:
+    - name: Restart chronyd
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted

@@ -1,0 +1,62 @@
+---
+- name: Deploy a simple Apache site (builtin-only)
+  hosts: web
+  become: true
+
+  vars:
+    site_title: "AAP Config Management Demo"
+    site_message: "This host is configured by Ansible (desired state)."
+
+  tasks:
+    - name: Install httpd
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+
+    - name: Deploy index.html
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <!doctype html>
+          <html>
+            <head><title>{{ site_title }}</title></head>
+            <body>
+              <h1>{{ site_title }}</h1>
+              <p>{{ site_message }}</p>
+              <p>Host: {{ inventory_hostname }}</p>
+            </body>
+          </html>
+      notify: Restart httpd
+
+    - name: Ensure httpd enabled and running
+      ansible.builtin.service:
+        name: httpd
+        enabled: true
+        state: started
+
+    - name: Ensure firewalld is enabled and running
+      ansible.builtin.service:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: Allow HTTP service through firewall (permanent)
+      ansible.builtin.command: firewall-cmd --permanent --add-service=http
+      register: fw_http_perm
+      changed_when: "'success' in (fw_http_perm.stdout | lower) or fw_http_perm.rc == 0"
+      failed_when: fw_http_perm.rc != 0
+
+    - name: Reload firewalld
+      ansible.builtin.command: firewall-cmd --reload
+      register: fw_reload
+      changed_when: false
+      failed_when: fw_reload.rc != 0
+
+  handlers:
+    - name: Restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
